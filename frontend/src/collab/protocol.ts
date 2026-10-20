@@ -9,12 +9,14 @@ export interface WireUpdate {
 
 // Client -> server: unconfirmed updates based on `version`.
 export interface PushMessage {
+  type: "push";
   version: number;
   updates: WireUpdate[];
 }
 
 // Server -> client: accepted updates starting at index `from`.
 export interface UpdatesMessage {
+  type: "updates";
   from: number;
   updates: WireUpdate[];
 }

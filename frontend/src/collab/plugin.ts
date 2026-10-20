@@ -47,6 +47,7 @@ export function collabExtension(socket: WebSocket): Extension {
 
         this.pushing = true;
         const msg: PushMessage = {
+          type: "push",
           version: getSyncedVersion(state),
           updates: toWire(updates),
         };
@@ -54,7 +55,10 @@ export function collabExtension(socket: WebSocket): Extension {
       };
 
       private onMessage = (event: MessageEvent<string>) => {
-        const msg: UpdatesMessage = JSON.parse(event.data);
+        const data = JSON.parse(event.data);
+        // Other plugins (e.g. cursors) share this socket.
+        if (data.type !== "updates") return;
+        const msg: UpdatesMessage = data;
         const state = this.view.state;
 
         // Skip updates that were already applied.

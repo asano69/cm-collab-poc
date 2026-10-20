@@ -28,3 +28,8 @@ body,
 .editor .cm-editor {
   height: 100%;
 }
+
+/* Room above the first line for the cursor name flags. */
+.editor .cm-editor .cm-content {
+  padding-top: 20px;
+}

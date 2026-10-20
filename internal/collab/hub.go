@@ -28,13 +28,17 @@ type pushMessage struct {
 
 // updatesMessage is sent by the server: updates starting at index From.
 type updatesMessage struct {
+	Type    string   `json:"type"`
 	From    int      `json:"from"`
 	Updates []Update `json:"updates"`
 }
 
+// client is one connection. id and cursor are guarded by Hub.mu.
 type client struct {
 	send   chan []byte
 	cancel context.CancelFunc
+	id     string // clientID from the latest cursor message
+	cursor []byte // latest cursor message, replayed to new clients
 }
 
 // Hub holds the single shared document.
@@ -49,7 +53,7 @@ func NewHub() *Hub {
 }
 
 func encode(from int, updates []Update) []byte {
-	data, err := json.Marshal(updatesMessage{From: from, Updates: updates})
+	data, err := json.Marshal(updatesMessage{Type: "updates", From: from, Updates: updates})
 	if err != nil {
 		// Unreachable: every Update was already parsed from valid JSON.
 		log.Printf("collab: encode: %v", err)
@@ -75,12 +79,14 @@ func (h *Hub) join(c *client) {
 	if len(h.updates) > 0 {
 		deliver(c, encode(0, h.updates))
 	}
+	h.sendCursors(c)
 }
 
 func (h *Hub) leave(c *client) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	delete(h.clients, c)
+	h.announceLeave(c)
 }
 
 func validate(updates []Update) error {
@@ -130,17 +136,37 @@ func (c *client) writeLoop(ctx context.Context, conn *websocket.Conn) {
 	}
 }
 
+type envelope struct {
+	Type string `json:"type"`
+}
+
+// handle dispatches one client message by its type.
+func (h *Hub) handle(c *client, data []byte) error {
+	var env envelope
+	if err := json.Unmarshal(data, &env); err != nil {
+		return fmt.Errorf("invalid message: %w", err)
+	}
+	switch env.Type {
+	case "push":
+		var msg pushMessage
+		if err := json.Unmarshal(data, &msg); err != nil {
+			return fmt.Errorf("invalid push message: %w", err)
+		}
+		return h.push(c, msg)
+	case "cursor":
+		return h.cursor(c, data)
+	default:
+		return fmt.Errorf("unknown message type %q", env.Type)
+	}
+}
+
 func (h *Hub) readLoop(ctx context.Context, conn *websocket.Conn, c *client) error {
 	for {
 		_, data, err := conn.Read(ctx)
 		if err != nil {
 			return err
 		}
-		var msg pushMessage
-		if err := json.Unmarshal(data, &msg); err != nil {
-			return fmt.Errorf("invalid message: %w", err)
-		}
-		if err := h.push(c, msg); err != nil {
+		if err := h.handle(c, data); err != nil {
 			return err
 		}
 	}
