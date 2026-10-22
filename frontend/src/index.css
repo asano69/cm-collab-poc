@@ -34,6 +34,18 @@ body,
   padding-top: 20px;
 }
 
-.editor .cm-editor .cm-gutterElement {
-  font-size: 14px;
+.editor .cm-editor .cm-lineNumbers .cm-gutterElement {
+  cursor: pointer;
+}
+
+.cm-line-popup {
+  position: fixed;
+  z-index: 10;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: #222;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 20%);
 }

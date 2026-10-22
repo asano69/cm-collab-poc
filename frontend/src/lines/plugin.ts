@@ -1,9 +1,9 @@
 import { ViewPlugin, type EditorView } from "@codemirror/view";
 import type { LinesMessage } from "./protocol";
-import { setLineIDs } from "./state";
+import { setLines } from "./state";
 
-// Stores the line IDs that the server sends over `socket`.
-export function lineIDSync(socket: WebSocket) {
+// Stores the line info that the server sends over `socket`.
+export function lineSync(socket: WebSocket) {
   return ViewPlugin.fromClass(
     class {
       private readonly view: EditorView;
@@ -22,7 +22,7 @@ export function lineIDSync(socket: WebSocket) {
         // Other plugins share this socket.
         if (data.type !== "lines") return;
         const msg: LinesMessage = data;
-        this.view.dispatch({ effects: setLineIDs.of(msg.ids) });
+        this.view.dispatch({ effects: setLines.of(msg.lines) });
       };
     },
   );

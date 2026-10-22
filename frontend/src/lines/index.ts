@@ -1,9 +1,9 @@
 import type { Extension } from "@codemirror/state";
-import { lineIDGutter } from "./gutter";
-import { lineIDSync } from "./plugin";
-import { lineIDsField } from "./state";
+import { lineNumberGutter } from "./gutter";
+import { lineSync } from "./plugin";
+import { linesField } from "./state";
 
-// Shows the ID of every line in a column left of the text.
-export function lineIDsExtension(socket: WebSocket): Extension {
-  return [lineIDsField, lineIDSync(socket), lineIDGutter];
+// Shows line numbers left of the text; clicking one shows the info of the line.
+export function linesExtension(socket: WebSocket): Extension {
+  return [linesField, lineSync(socket), lineNumberGutter];
 }

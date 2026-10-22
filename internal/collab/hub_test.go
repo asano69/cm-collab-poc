@@ -63,7 +63,11 @@ func lineIDs(t *testing.T, data []byte) []string {
 	if err := json.Unmarshal(data, &msg); err != nil || msg.Type != "lines" {
 		t.Fatalf("%s is not a lines message (%v)", data, err)
 	}
-	return msg.IDs
+	ids := make([]string, len(msg.Lines))
+	for i, l := range msg.Lines {
+		ids[i] = l.ID
+	}
+	return ids
 }
 
 func TestClientsReceiveLineIDsAfterEveryChange(t *testing.T) {

@@ -1,15 +1,16 @@
 import { StateEffect, StateField } from "@codemirror/state";
+import type { LineInfo } from "./protocol";
 
-// Replaces the known line IDs.
-export const setLineIDs = StateEffect.define<readonly string[]>();
+// Replaces the known line info.
+export const setLines = StateEffect.define<readonly LineInfo[]>();
 
-// The line IDs of the server's latest message; the ID of line n is at n - 1.
-export const lineIDsField = StateField.define<readonly string[]>({
+// The line info of the server's latest message; the info of line n is at n - 1.
+export const linesField = StateField.define<readonly LineInfo[]>({
   create: () => [],
-  update(ids, tr) {
+  update(lines, tr) {
     for (const effect of tr.effects) {
-      if (effect.is(setLineIDs)) return effect.value;
+      if (effect.is(setLines)) return effect.value;
     }
-    return ids;
+    return lines;
   },
 });

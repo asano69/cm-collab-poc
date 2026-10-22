@@ -1,45 +1,18 @@
-import { EditorView, GutterMarker, gutter } from "@codemirror/view";
-import { shortID } from "./id";
-import { lineIDsField } from "./state";
+import { lineNumbers } from "@codemirror/view";
+import { showLinePopup } from "./popup";
+import { linesField } from "./state";
 
-class LineIDMarker extends GutterMarker {
-  private readonly id: string;
-
-  constructor(id: string) {
-    super();
-    this.id = id;
-  }
-
-  eq(other: LineIDMarker) {
-    return other.id === this.id;
-  }
-
-  toDOM() {
-    return document.createTextNode(shortID(this.id));
-  }
-}
-
-const theme = EditorView.baseTheme({
-  ".cm-line-id-gutter .cm-gutterElement": {
-    padding: "0 8px",
-    textAlign: "right",
-    color: "#888",
+// The usual line numbers; clicking one shows the info of that line. Lines
+// without known info (the text is ahead of the server) do nothing.
+export const lineNumberGutter = lineNumbers({
+  domEventHandlers: {
+    click(view, line, event) {
+      const number = view.state.doc.lineAt(line.from).number;
+      const info = view.state.field(linesField)[number - 1];
+      if (info === undefined) return false;
+      const { clientX, clientY } = event as MouseEvent;
+      showLinePopup(info, clientX, clientY);
+      return true;
+    },
   },
 });
-
-// A column left of the text that shows the ID of each line. Lines without a
-// known ID (the text is ahead of the server) stay blank.
-const idGutter = gutter({
-  class: "cm-line-id-gutter",
-  lineMarker(view, line) {
-    const number = view.state.doc.lineAt(line.from).number;
-    const id = view.state.field(lineIDsField)[number - 1];
-    return id === undefined ? null : new LineIDMarker(id);
-  },
-  // The gutter is redrawn on document changes by itself; this covers the IDs
-  // changing without one.
-  lineMarkerChange: (update) =>
-    update.startState.field(lineIDsField) !== update.state.field(lineIDsField),
-});
-
-export const lineIDGutter = [theme, idGutter];

@@ -11,14 +11,13 @@
     "strict": false,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     },
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "types": ["vite/client", "bun-types"]
+    "types": ["vite/client"]
   },
   "include": ["src"]
 }
