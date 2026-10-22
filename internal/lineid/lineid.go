@@ -4,6 +4,7 @@
 // An edit replaces the lines it touches by the lines it produces. One of the
 // touched lines keeps its ID on one of the produced lines; every other
 // produced line gets a fresh ID, and the other touched IDs are gone for good.
+// IDs are random UUIDs, so a gone ID is never handed out again.
 //
 //   - Normally the first touched line keeps its ID on the first produced line:
 //     Enter at the end of a line, joining lines, typing.
@@ -20,15 +21,13 @@ const newline = '\n'
 
 // Line is the metadata of one line.
 type Line struct {
-	ID      int64 `json:"id"`
-	Updated int64 `json:"updated"` // Unix time of the last edit that touched the line
+	ID      string `json:"id"`      // UUID version 7
+	Updated int64  `json:"updated"` // Unix time of the last edit that touched the line
 }
 
-// Meta holds the metadata of every line, in document order. NextID is the ID
-// of the next new line; it only grows, so an ID is never handed out twice.
+// Meta holds the metadata of every line, in document order.
 type Meta struct {
-	NextID int64  `json:"nextID"`
-	Lines  []Line `json:"lines"`
+	Lines []Line `json:"lines"`
 }
 
 // Edit replaces doc[From:To] with Text. Positions are UTF-16 code units.
@@ -50,14 +49,13 @@ func newlines(units []uint16) int {
 	return n
 }
 
-// New gives every line of doc a fresh ID, starting at nextID.
-func New(doc []uint16, nextID, now int64) Meta {
+// New gives every line of doc a fresh ID.
+func New(doc []uint16, now int64) Meta {
 	lines := make([]Line, Count(doc))
 	for i := range lines {
-		lines[i] = Line{ID: nextID, Updated: now}
-		nextID++
+		lines[i] = Line{ID: newID(), Updated: now}
 	}
-	return Meta{NextID: nextID, Lines: lines}
+	return Meta{Lines: lines}
 }
 
 // Apply returns the metadata after edits were applied to doc. The edits must
@@ -88,8 +86,7 @@ func (m *Meta) applyEdit(doc []uint16, e Edit, now int64) {
 	for n := range lines {
 		id := survivor
 		if n != slot {
-			id = m.NextID
-			m.NextID++
+			id = newID()
 		}
 		lines[n] = Line{ID: id, Updated: now}
 	}

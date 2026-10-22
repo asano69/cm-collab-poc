@@ -9,12 +9,12 @@ import (
 
 // linesMessage is sent by the server: the ID of every line, in line order.
 type linesMessage struct {
-	Type string  `json:"type"`
-	IDs  []int64 `json:"ids"`
+	Type string   `json:"type"`
+	IDs  []string `json:"ids"`
 }
 
 func encodeLines(meta lineid.Meta) []byte {
-	ids := make([]int64, len(meta.Lines))
+	ids := make([]string, len(meta.Lines))
 	for i, line := range meta.Lines {
 		ids[i] = line.ID
 	}

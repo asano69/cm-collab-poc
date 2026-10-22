@@ -57,7 +57,7 @@ func NewHub() *Hub {
 	return &Hub{
 		updates: []Update{},
 		doc:     []uint16{},
-		meta:    lineid.New(nil, 1, time.Now().Unix()),
+		meta:    lineid.New(nil, time.Now().Unix()),
 		clients: map[*client]struct{}{},
 	}
 }

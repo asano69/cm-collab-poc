@@ -49,7 +49,7 @@ func (h *Hub) Meta() lineid.Meta {
 
 // RestoreMeta adopts line IDs that were saved earlier, if they fit the
 // document. If they do not (the file was edited while the server was down),
-// every line gets a new ID; an ID that was handed out before is never reused.
+// every line gets a new ID, so an ID that was handed out before is never reused.
 func (h *Hub) RestoreMeta(saved lineid.Meta) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -62,6 +62,6 @@ func (h *Hub) RestoreMeta(saved lineid.Meta) {
 	default:
 		log.Printf("collab: saved line IDs cover %d lines but the document has %d; assigning new IDs",
 			len(saved.Lines), lineid.Count(h.doc))
-		h.meta = lineid.New(h.doc, max(saved.NextID, h.meta.NextID), time.Now().Unix())
+		h.meta = lineid.New(h.doc, time.Now().Unix())
 	}
 }

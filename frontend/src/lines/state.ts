@@ -1,10 +1,10 @@
 import { StateEffect, StateField } from "@codemirror/state";
 
 // Replaces the known line IDs.
-export const setLineIDs = StateEffect.define<readonly number[]>();
+export const setLineIDs = StateEffect.define<readonly string[]>();
 
 // The line IDs of the server's latest message; the ID of line n is at n - 1.
-export const lineIDsField = StateField.define<readonly number[]>({
+export const lineIDsField = StateField.define<readonly string[]>({
   create: () => [],
   update(ids, tr) {
     for (const effect of tr.effects) {

@@ -1,10 +1,11 @@
 import { EditorView, GutterMarker, gutter } from "@codemirror/view";
+import { shortID } from "./id";
 import { lineIDsField } from "./state";
 
 class LineIDMarker extends GutterMarker {
-  private readonly id: number;
+  private readonly id: string;
 
-  constructor(id: number) {
+  constructor(id: string) {
     super();
     this.id = id;
   }
@@ -14,13 +15,13 @@ class LineIDMarker extends GutterMarker {
   }
 
   toDOM() {
-    return document.createTextNode(String(this.id));
+    return document.createTextNode(shortID(this.id));
   }
 }
 
 const theme = EditorView.baseTheme({
   ".cm-line-id-gutter": {
-    minWidth: "5ch",
+    minWidth: "7ch",
   },
   ".cm-line-id-gutter .cm-gutterElement": {
     padding: "0 8px",
