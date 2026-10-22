@@ -37,14 +37,18 @@ body,
 .editor .cm-editor .cm-lineNumbers .cm-gutterElement {
   cursor: pointer;
 }
+.editor .cm-editor .cm-gutter {
+  min-width: 2rem;
+}
 
 .cm-line-popup {
+  font-family: monospace;
   position: fixed;
   z-index: 10;
   padding: 6px 10px;
-  font-size: 13px;
-  color: #222;
-  background: #fff;
+  font-size: 16px;
+  color: #fff;
+  background: #555;
   border: 1px solid #ccc;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgb(0 0 0 / 20%);
