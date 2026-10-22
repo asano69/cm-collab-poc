@@ -4,6 +4,7 @@ import (
 	"crypto/ed25519"
 	"encoding/base64"
 	"path/filepath"
+	"strings"
 	"testing"
 	"unicode/utf16"
 
@@ -39,6 +40,28 @@ func TestSignRecordsAuthorAndVerifies(t *testing.T) {
 		if !ed25519.Verify(pub, message(l), sig) {
 			t.Errorf("signature of %q does not verify", l.ID)
 		}
+	}
+}
+
+func TestKnownHostsRoundTrip(t *testing.T) {
+	a := newAuthority(t)
+	path := filepath.Join(t.TempDir(), "known_hosts")
+	if err := a.WriteKnownHosts(path, "127.0.0.1:3002"); err != nil {
+		t.Fatal(err)
+	}
+	got, err := ReadKnownHosts(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != a.PublicKey() {
+		t.Errorf("got %q, want %q", got, a.PublicKey())
+	}
+}
+
+func TestReadKnownHostsMissingFile(t *testing.T) {
+	_, err := ReadKnownHosts(filepath.Join(t.TempDir(), "none"))
+	if err == nil || !strings.Contains(err.Error(), "copy it") {
+		t.Errorf("error = %v, want one telling where to get the file", err)
 	}
 }
 

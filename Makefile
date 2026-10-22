@@ -6,7 +6,7 @@ export
 BINARY := myapp
 
 # Ports used by the dev servers (frontend, backend, and PocketBase-style API)
-PORTS := 3002 3003
+PORTS := 3002 3003 3004
 
 all: # (*) Build frontend assets and start the server
 	go run ./cmd/$(BINARY) superuser upsert admin@mail.internal password --dir=pb_data
@@ -25,13 +25,11 @@ build-front: deps-front
 build: build-front
 	go build -ldflags="-X github.com/asano69/myapp/internal/version.Version=$(VERSION)" -o $(BINARY) ./cmd/$(BINARY)
 
-.PHONY: server
-server: 
-	#./myapp migrate up --dir=pb_data
-	./$(BINARY) superuser upsert admin@mail.internal password --dir=pb_data
-	./$(BINARY) serve
+.PHONY: relay
+relay: 
+	go run ./cmd/$(BINARY) relay --upstream ws://localhost:3002 --addr 127.0.0.1:3004
 
-# --------------
+
 .PHONY: clean
 	rm -fr ./tmp/ # air
 	rm -fr frontend/node_modules/.vite
@@ -51,7 +49,7 @@ dev-back: clean
 test: test-front test-back
 
 test-back:
-	go test ./cmd/... ./internal/... #./scripts/...
+	go test ./cmd/... ./internal/...
 
 test-front:
 	cd frontend && bun run test

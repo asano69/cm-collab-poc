@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/asano69/myapp/internal/authority"
 	"github.com/asano69/myapp/internal/relay"
 	"github.com/asano69/myapp/internal/relayauth"
 	"github.com/asano69/myapp/internal/static"
@@ -18,6 +19,8 @@ func relayCmd(args []string) error {
 	upstream := fs.String("upstream", "", "main server URL, e.g. wss://host:3002 (required)")
 	addr := fs.String("addr", "127.0.0.1:3004", "listen address")
 	keyPath := fs.String("key", "relay-private.pem", "private key file")
+	knownHosts := fs.String("known-hosts", "known_hosts",
+		"known_hosts file copied from the main server, for the browsers' signature check")
 	fs.Parse(args)
 
 	if *upstream == "" {
@@ -31,9 +34,14 @@ func relayCmd(args []string) error {
 	if err != nil {
 		return err
 	}
+	authorityKey, err := authority.ReadKnownHosts(*knownHosts)
+	if err != nil {
+		return err
+	}
 
 	mux := http.NewServeMux()
 	mux.Handle("/connection/collab", proxy)
+	mux.Handle(authority.KeyPath, authority.KeyHandler(authorityKey))
 	mux.Handle("/", http.FileServerFS(static.FS))
 
 	log.Printf("relay public key: %s", relayauth.AuthorizedKey(key))

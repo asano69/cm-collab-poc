@@ -8,6 +8,9 @@ codemirror/collabの概念実証
 echo 'ssh-ed25519 AAAA... ' >> authorized_keys
 ./myapp serve --addr 0.0.0.0:3002
 
-# relay 側: 起動
+# relay 側: メインが書き出した known_hosts をコピーして起動
+cp <メインのディレクトリ>/known_hosts .
 ./myapp relay --upstream ws://127.0.0.1:3002 --addr 127.0.0.1:3004
 ```
+
+![](./example.png)

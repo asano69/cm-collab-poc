@@ -53,6 +53,7 @@ func serve(args []string) error {
 	mux := http.NewServeMux()
 	mux.Handle("/connection/collab", hub)
 	mux.Handle(relayauth.Path, relayauth.Require(*keys, hub))
+	mux.Handle(authority.KeyPath, authority.KeyHandler(auth.PublicKey()))
 	mux.Handle("/", http.FileServerFS(static.FS))
 
 	log.Printf("listening on http://%s (relay keys: %s)", *addr, *keys)

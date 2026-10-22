@@ -10,8 +10,10 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"net/http"
 	"os"
 	"slices"
+	"strings"
 	"unicode/utf16"
 
 	"github.com/asano69/myapp/internal/lineid"
@@ -49,6 +51,36 @@ func (a *Authority) WriteKnownHosts(path, host string) error {
 		return fmt.Errorf("write %s: %w", path, err)
 	}
 	return nil
+}
+
+// KeyPath is where the main server and the relays publish the public key, so
+// that browsers can verify the line signatures.
+const KeyPath = "/authority.pub"
+
+// KeyHandler serves publicKey (authorized_keys form) as plain text.
+func KeyHandler(publicKey string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		fmt.Fprintln(w, publicKey)
+	})
+}
+
+// ReadKnownHosts returns the public key, in authorized_keys form, from a
+// known_hosts file written by WriteKnownHosts.
+func ReadKnownHosts(path string) (string, error) {
+	data, err := os.ReadFile(path)
+	if errors.Is(err, fs.ErrNotExist) {
+		return "", fmt.Errorf("%s not found; copy it from the main server", path)
+	}
+	if err != nil {
+		return "", fmt.Errorf("read %s: %w", path, err)
+	}
+	// The line is "host ssh-ed25519 AAAA...".
+	fields := strings.Fields(string(data))
+	if len(fields) < 3 || fields[1] != "ssh-ed25519" {
+		return "", fmt.Errorf("%s is not valid; copy it from the main server", path)
+	}
+	return fields[1] + " " + fields[2], nil
 }
 
 // Sign returns meta where every line that is unsigned, or whose text no longer

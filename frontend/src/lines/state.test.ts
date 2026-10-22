@@ -3,7 +3,7 @@ import { expect, test } from "vitest";
 import type { LineInfo } from "./protocol";
 import { linesField, setLines } from "./state";
 
-const info: LineInfo = { id: "x", updated: 7, admin: "Bob" };
+const info: LineInfo = { id: "x", updated: 7, admin: "Bob", key: "", signature: "" };
 
 test("setLines replaces the known line info", () => {
   const state = EditorState.create({ extensions: [linesField] });

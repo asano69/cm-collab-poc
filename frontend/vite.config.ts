@@ -27,6 +27,7 @@ export default defineConfig({
       // while PocketBase only listens on 127.0.0.1 (IPv4).
       "/api": { target: "http://127.0.0.1:3002", changeOrigin: true },
       "/_": { target: "http://127.0.0.1:3002", changeOrigin: true },
+      "/authority.pub": { target: "http://127.0.0.1:3002", changeOrigin: true },
       "/connection/": wsProxy,
     },
   },
