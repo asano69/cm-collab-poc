@@ -69,12 +69,15 @@ func TestProxyForwardsEdits(t *testing.T) {
 	if err := c.Write(ctx, websocket.MessageText, []byte(push)); err != nil {
 		t.Fatal(err)
 	}
-	_, data, err := c.Read(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !strings.Contains(string(data), `"type":"updates"`) {
-		t.Errorf("reply = %s, want an updates message", data)
+	// Every client first gets the line IDs, then the reply to its push.
+	for _, want := range []string{`"type":"lines"`, `"type":"updates"`} {
+		_, data, err := c.Read(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !strings.Contains(string(data), want) {
+			t.Fatalf("reply = %s, want a message with %s", data, want)
+		}
 	}
 	if got := hub.Text(); got != "hi" {
 		t.Errorf("hub text = %q, want %q", got, "hi")

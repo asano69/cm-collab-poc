@@ -39,18 +39,35 @@ func TestReplaceUpdatesTextAndNotifiesClients(t *testing.T) {
 	h := NewHub()
 	c := newTestClient()
 	h.join(c)
+	joined := len(c.send) // the line IDs that every client gets on joining
 
 	h.Replace("hello")
 	if got := h.Text(); got != "hello" {
 		t.Errorf("Text() = %q, want %q", got, "hello")
 	}
-	if len(c.send) != 1 {
-		t.Errorf("client got %d messages, want 1", len(c.send))
+	// The update and the line IDs that go with it.
+	if got := len(c.send) - joined; got != 2 {
+		t.Errorf("client got %d messages, want 2", got)
 	}
 
 	h.Replace("hello")
 	if len(h.updates) != 1 {
 		t.Errorf("replacing with the same text added an update: %d", len(h.updates))
+	}
+}
+
+func TestClientsReceiveLineIDsAfterEveryChange(t *testing.T) {
+	h := NewHub()
+	c := newTestClient()
+	h.join(c)
+	if got, want := string(<-c.send), `{"type":"lines","ids":[1]}`; got != want {
+		t.Errorf("on joining: got %s, want %s", got, want)
+	}
+
+	h.Replace("a\nb")
+	<-c.send // the update
+	if got, want := string(<-c.send), `{"type":"lines","ids":[1,2]}`; got != want {
+		t.Errorf("after the change: got %s, want %s", got, want)
 	}
 }
 

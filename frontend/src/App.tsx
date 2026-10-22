@@ -4,6 +4,7 @@ import { EditorState } from "@codemirror/state";
 import { EditorView, keymap } from "@codemirror/view";
 import { collabExtension } from "@/collab";
 import { cursorsExtension } from "@/cursors";
+import { lineIDsExtension } from "@/lines";
 
 // A throwaway display name; there is no login in this proof of concept.
 const userName = `User ${Math.floor(Math.random() * 900) + 100}`;
@@ -32,6 +33,7 @@ function App() {
           keymap.of([...defaultKeymap, ...historyKeymap]),
           collabExtension(socket),
           cursorsExtension(socket, { name: userName }),
+          lineIDsExtension(socket),
         ],
       }),
     });

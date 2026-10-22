@@ -89,6 +89,7 @@ func (h *Hub) join(c *client) {
 	if len(h.updates) > 0 {
 		deliver(c, encode(0, h.updates))
 	}
+	deliver(c, encodeLines(h.meta))
 	h.sendCursors(c)
 }
 
@@ -135,13 +136,16 @@ func (h *Hub) push(c *client, msg pushMessage) error {
 }
 
 // accept appends already applied updates to the history and relays them to
-// every client. h.mu must be held.
+// every client, followed by the line IDs: a client then has the text that the
+// IDs belong to. h.mu must be held.
 func (h *Hub) accept(updates []Update) {
 	from := len(h.updates)
 	h.updates = append(h.updates, updates...)
 	data := encode(from, updates)
+	lines := encodeLines(h.meta)
 	for cl := range h.clients {
 		deliver(cl, data)
+		deliver(cl, lines)
 	}
 }
 
