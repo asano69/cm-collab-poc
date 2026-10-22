@@ -13,7 +13,7 @@ import (
 
 	"github.com/coder/websocket"
 
-	"github.com/asano69/myapp/internal/collab"
+	"github.com/asano69/myapp/internal/linehub"
 	"github.com/asano69/myapp/internal/relayauth"
 )
 
@@ -21,7 +21,7 @@ func wsURL(httpURL string) string { return "ws" + strings.TrimPrefix(httpURL, "h
 
 // startRelay starts a main server that authorizes the keys in authorized, and
 // a relay that signs with key. It returns the relay's URL and the hub.
-func startRelay(t *testing.T, authorized string) (string, *collab.Hub) {
+func startRelay(t *testing.T, authorized string) (string, *linehub.Hub) {
 	t.Helper()
 	dir := t.TempDir()
 	priv, err := relayauth.GenerateKey(filepath.Join(dir, "key.pem"))
@@ -41,7 +41,7 @@ func startRelay(t *testing.T, authorized string) (string, *collab.Hub) {
 		t.Fatal(err)
 	}
 
-	hub := collab.NewHub()
+	hub := linehub.New()
 	main := httptest.NewServer(relayauth.Require(keys, hub))
 	t.Cleanup(main.Close)
 

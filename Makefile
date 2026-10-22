@@ -49,7 +49,7 @@ dev-back: clean
 test: test-front test-back
 
 test-back:
-	go test ./cmd/... ./internal/...
+	go test ./cmd/... ./collab/... ./internal/... 
 
 test-front:
 	cd frontend && bun run test

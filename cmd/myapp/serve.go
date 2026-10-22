@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/asano69/myapp/internal/authority"
-	"github.com/asano69/myapp/internal/collab"
 	"github.com/asano69/myapp/internal/filesync"
+	"github.com/asano69/myapp/internal/linehub"
 	"github.com/asano69/myapp/internal/relayauth"
 	"github.com/asano69/myapp/internal/static"
 )
@@ -40,7 +40,7 @@ func serve(args []string) error {
 	}
 	log.Printf("authority public key: %s (saved to %s)", auth.PublicKey(), *knownHosts)
 
-	hub := collab.NewHub()
+	hub := linehub.New()
 	hub.SetSigner(auth)
 	if err := filesync.Start(hub, dataPath); err != nil {
 		return err

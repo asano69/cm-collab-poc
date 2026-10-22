@@ -18,7 +18,7 @@ type leaveMessage struct {
 }
 
 // cursor remembers the client's latest cursor and relays it to the others.
-func (h *Hub) cursor(c *client, data []byte) error {
+func (h *Server) cursor(c *client, data []byte) error {
 	var msg cursorMessage
 	if err := json.Unmarshal(data, &msg); err != nil {
 		return fmt.Errorf("invalid cursor message: %w", err)
@@ -41,7 +41,7 @@ func (h *Hub) cursor(c *client, data []byte) error {
 
 // sendCursors gives a new client the cursors of everyone already connected.
 // h.mu must be held.
-func (h *Hub) sendCursors(c *client) {
+func (h *Server) sendCursors(c *client) {
 	for cl := range h.clients {
 		if cl != c && cl.cursor != nil {
 			deliver(c, cl.cursor)
@@ -51,7 +51,7 @@ func (h *Hub) sendCursors(c *client) {
 
 // announceLeave removes c's cursor from the remaining clients. h.mu must be
 // held and c must already be removed from h.clients.
-func (h *Hub) announceLeave(c *client) {
+func (h *Server) announceLeave(c *client) {
 	if c.id == "" {
 		return
 	}

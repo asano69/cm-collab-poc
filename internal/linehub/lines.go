@@ -1,4 +1,4 @@
-package collab
+package linehub
 
 import (
 	"encoding/json"

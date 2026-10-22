@@ -6,8 +6,6 @@ import (
 	"math"
 	"strings"
 	"unicode/utf16"
-
-	"github.com/asano69/myapp/internal/lineid"
 )
 
 // CodeMirror counts document positions in UTF-16 code units, so the server
@@ -50,13 +48,13 @@ func replacement(section []any) (deleted int, inserted []uint16, err error) {
 //
 // A section is either a number (keep that many units) or an array
 // [deleted, ...insertedLines].
-func parseChanges(docLen int, changes json.RawMessage) ([]lineid.Edit, error) {
+func parseChanges(docLen int, changes json.RawMessage) ([]Edit, error) {
 	var sections []any
 	if err := json.Unmarshal(changes, &sections); err != nil {
 		return nil, fmt.Errorf("invalid changes: %w", err)
 	}
 
-	var edits []lineid.Edit
+	var edits []Edit
 	pos := 0
 	for _, section := range sections {
 		switch v := section.(type) {
@@ -72,7 +70,7 @@ func parseChanges(docLen int, changes json.RawMessage) ([]lineid.Edit, error) {
 				return nil, err
 			}
 			if deleted > 0 || len(inserted) > 0 {
-				edits = append(edits, lineid.Edit{From: pos, To: pos + deleted, Text: inserted})
+				edits = append(edits, Edit{From: pos, To: pos + deleted, Text: inserted})
 			}
 			pos += deleted
 		default:
@@ -89,7 +87,7 @@ func parseChanges(docLen int, changes json.RawMessage) ([]lineid.Edit, error) {
 }
 
 // applyEdits returns doc with the edits applied. doc is not modified.
-func applyEdits(doc []uint16, edits []lineid.Edit) []uint16 {
+func applyEdits(doc []uint16, edits []Edit) []uint16 {
 	out := make([]uint16, 0, len(doc))
 	pos := 0
 	for _, e := range edits {
@@ -102,7 +100,7 @@ func applyEdits(doc []uint16, edits []lineid.Edit) []uint16 {
 
 // applyChanges applies a CodeMirror ChangeSet (its JSON form) to doc and
 // returns the new document and the edits it consists of. doc is not modified.
-func applyChanges(doc []uint16, changes json.RawMessage) ([]uint16, []lineid.Edit, error) {
+func applyChanges(doc []uint16, changes json.RawMessage) ([]uint16, []Edit, error) {
 	edits, err := parseChanges(len(doc), changes)
 	if err != nil {
 		return nil, nil, err
@@ -110,18 +108,19 @@ func applyChanges(doc []uint16, changes json.RawMessage) ([]uint16, []lineid.Edi
 	return applyEdits(doc, edits), edits, nil
 }
 
-// applyUpdates applies updates in order to the document and its line IDs.
-// Nothing is applied if one fails.
-func applyUpdates(doc []uint16, meta lineid.Meta, updates []Update, now int64) ([]uint16, lineid.Meta, error) {
+// applyUpdates applies updates in order to the document and returns the new
+// document with one Change per update. Nothing is applied if one fails.
+func applyUpdates(doc []uint16, updates []Update) ([]uint16, []Change, error) {
+	changes := make([]Change, 0, len(updates))
 	for i, u := range updates {
 		next, edits, err := applyChanges(doc, u.Changes)
 		if err != nil {
-			return nil, lineid.Meta{}, fmt.Errorf("update %d: %w", i, err)
+			return nil, nil, fmt.Errorf("update %d: %w", i, err)
 		}
-		meta = meta.Apply(doc, edits, now)
+		changes = append(changes, Change{Before: doc, Edits: edits})
 		doc = next
 	}
-	return doc, meta, nil
+	return doc, changes, nil
 }
 
 func isHighSurrogate(u uint16) bool { return u >= 0xD800 && u < 0xDC00 }
