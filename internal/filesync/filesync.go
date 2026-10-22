@@ -1,6 +1,7 @@
 // Package filesync keeps a Document and a text file in sync. The document is
 // saved to the file every second when it changed, and an edit made to the file
-// by another process always replaces the document.
+// by another process always replaces the document. The line IDs of the
+// document are saved to a second file, see StartMeta.
 package filesync
 
 import (

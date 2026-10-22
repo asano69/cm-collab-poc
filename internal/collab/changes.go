@@ -6,6 +6,8 @@ import (
 	"math"
 	"strings"
 	"unicode/utf16"
+
+	"github.com/asano69/myapp/internal/lineid"
 )
 
 // CodeMirror counts document positions in UTF-16 code units, so the server
@@ -43,63 +45,83 @@ func replacement(section []any) (deleted int, inserted []uint16, err error) {
 	return deleted, toUnits(strings.Join(lines, "\n")), nil
 }
 
-// applyChanges applies a CodeMirror ChangeSet (its JSON form) to doc and
-// returns the new document. doc is not modified.
+// parseChanges turns a CodeMirror ChangeSet (its JSON form) into edits on a
+// document of docLen units.
 //
 // A section is either a number (keep that many units) or an array
 // [deleted, ...insertedLines].
-func applyChanges(doc []uint16, changes json.RawMessage) ([]uint16, error) {
+func parseChanges(docLen int, changes json.RawMessage) ([]lineid.Edit, error) {
 	var sections []any
 	if err := json.Unmarshal(changes, &sections); err != nil {
 		return nil, fmt.Errorf("invalid changes: %w", err)
 	}
 
-	out := make([]uint16, 0, len(doc))
+	var edits []lineid.Edit
 	pos := 0
 	for _, section := range sections {
-		var consumed int
 		switch v := section.(type) {
 		case float64:
 			n, err := length(v)
 			if err != nil {
 				return nil, err
 			}
-			if pos+n > len(doc) {
-				return nil, fmt.Errorf("changes are longer than the document (%d units)", len(doc))
-			}
-			out = append(out, doc[pos:pos+n]...)
-			consumed = n
+			pos += n
 		case []any:
 			deleted, inserted, err := replacement(v)
 			if err != nil {
 				return nil, err
 			}
-			if pos+deleted > len(doc) {
-				return nil, fmt.Errorf("changes are longer than the document (%d units)", len(doc))
+			if deleted > 0 || len(inserted) > 0 {
+				edits = append(edits, lineid.Edit{From: pos, To: pos + deleted, Text: inserted})
 			}
-			out = append(out, inserted...)
-			consumed = deleted
+			pos += deleted
 		default:
 			return nil, fmt.Errorf("invalid section %v", section)
 		}
-		pos += consumed
+		if pos > docLen {
+			return nil, fmt.Errorf("changes are longer than the document (%d units)", docLen)
+		}
 	}
-	if pos != len(doc) {
-		return nil, fmt.Errorf("changes cover %d units but the document has %d", pos, len(doc))
+	if pos != docLen {
+		return nil, fmt.Errorf("changes cover %d units but the document has %d", pos, docLen)
 	}
-	return out, nil
+	return edits, nil
 }
 
-// applyUpdates applies updates in order. Nothing is applied if one fails.
-func applyUpdates(doc []uint16, updates []Update) ([]uint16, error) {
+// applyEdits returns doc with the edits applied. doc is not modified.
+func applyEdits(doc []uint16, edits []lineid.Edit) []uint16 {
+	out := make([]uint16, 0, len(doc))
+	pos := 0
+	for _, e := range edits {
+		out = append(out, doc[pos:e.From]...)
+		out = append(out, e.Text...)
+		pos = e.To
+	}
+	return append(out, doc[pos:]...)
+}
+
+// applyChanges applies a CodeMirror ChangeSet (its JSON form) to doc and
+// returns the new document and the edits it consists of. doc is not modified.
+func applyChanges(doc []uint16, changes json.RawMessage) ([]uint16, []lineid.Edit, error) {
+	edits, err := parseChanges(len(doc), changes)
+	if err != nil {
+		return nil, nil, err
+	}
+	return applyEdits(doc, edits), edits, nil
+}
+
+// applyUpdates applies updates in order to the document and its line IDs.
+// Nothing is applied if one fails.
+func applyUpdates(doc []uint16, meta lineid.Meta, updates []Update, now int64) ([]uint16, lineid.Meta, error) {
 	for i, u := range updates {
-		next, err := applyChanges(doc, u.Changes)
+		next, edits, err := applyChanges(doc, u.Changes)
 		if err != nil {
-			return nil, fmt.Errorf("update %d: %w", i, err)
+			return nil, lineid.Meta{}, fmt.Errorf("update %d: %w", i, err)
 		}
+		meta = meta.Apply(doc, edits, now)
 		doc = next
 	}
-	return doc, nil
+	return doc, meta, nil
 }
 
 func isHighSurrogate(u uint16) bool { return u >= 0xD800 && u < 0xDC00 }

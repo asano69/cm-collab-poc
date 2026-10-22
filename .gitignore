@@ -3,6 +3,7 @@
 
 /data/
 data.txt
+meta.json
 
 # Relay credentials.
 relay-private.pem
@@ -17,4 +18,4 @@ dist/
 tmp/
 
 scripts/sample-data.json
-
+myapp

@@ -14,6 +14,9 @@ import (
 // dataPath is the file that persists the shared document.
 const dataPath = "data.txt"
 
+// metaPath is the file that persists the line IDs of the document.
+const metaPath = "meta.json"
+
 // serve runs the main server. Browsers connect to it directly, relays connect
 // through the authenticated relay endpoint.
 func serve(args []string) error {
@@ -25,6 +28,10 @@ func serve(args []string) error {
 
 	hub := collab.NewHub()
 	if err := filesync.Start(hub, dataPath); err != nil {
+		return err
+	}
+	// After Start: the saved line IDs are matched against the loaded text.
+	if err := filesync.StartMeta(hub, metaPath); err != nil {
 		return err
 	}
 

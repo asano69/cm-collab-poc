@@ -28,7 +28,7 @@ func TestApplyChanges(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := applyChanges(toUnits(tt.doc), json.RawMessage(tt.changes))
+			got, _, err := applyChanges(toUnits(tt.doc), json.RawMessage(tt.changes))
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -59,7 +59,7 @@ func TestReplaceChanges(t *testing.T) {
 				t.Errorf("got %s, want %s", got, tt.want)
 			}
 			// The result must turn old into new.
-			applied, err := applyChanges(toUnits(tt.old), got)
+			applied, _, err := applyChanges(toUnits(tt.old), got)
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -9,8 +9,11 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/coder/websocket"
+
+	"github.com/asano69/myapp/internal/lineid"
 )
 
 // Update is one client's change set. Changes is kept opaque: the server never
@@ -45,7 +48,8 @@ type client struct {
 type Hub struct {
 	mu      sync.Mutex
 	updates []Update
-	doc     []uint16 // the document after all updates, in UTF-16 code units
+	doc     []uint16    // the document after all updates, in UTF-16 code units
+	meta    lineid.Meta // the line IDs of doc, changed together with it
 	clients map[*client]struct{}
 }
 
@@ -53,6 +57,7 @@ func NewHub() *Hub {
 	return &Hub{
 		updates: []Update{},
 		doc:     []uint16{},
+		meta:    lineid.New(nil, 1, time.Now().Unix()),
 		clients: map[*client]struct{}{},
 	}
 }
@@ -119,11 +124,11 @@ func (h *Hub) push(c *client, msg pushMessage) error {
 	case msg.Version < len(h.updates):
 		deliver(c, encode(msg.Version, h.updates[msg.Version:]))
 	case len(msg.Updates) > 0:
-		doc, err := applyUpdates(h.doc, msg.Updates)
+		doc, meta, err := applyUpdates(h.doc, h.meta, msg.Updates, time.Now().Unix())
 		if err != nil {
 			return err
 		}
-		h.doc = doc
+		h.doc, h.meta = doc, meta
 		h.accept(msg.Updates)
 	}
 	return nil
