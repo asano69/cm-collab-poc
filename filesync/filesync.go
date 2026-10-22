@@ -1,7 +1,6 @@
 // Package filesync keeps a Document and a text file in sync. The document is
 // saved to the file every second when it changed, and an edit made to the file
-// by another process always replaces the document. The line IDs of the
-// document are saved to a second file, see StartMeta.
+// by another process always replaces the document.
 package filesync
 
 import (
@@ -126,7 +125,7 @@ func (s *Syncer) sync() error {
 		return nil
 	}
 	// Also reached when the file is missing, which restores it.
-	if err := writeAtomic(s.path, text); err != nil {
+	if err := WriteAtomic(s.path, text); err != nil {
 		return err
 	}
 	s.lastSynced = text
@@ -147,9 +146,9 @@ func (s *Syncer) read() (text string, exists bool, err error) {
 	return lineEndings.Replace(string(data)), true, nil
 }
 
-// writeAtomic replaces path through a temporary file in the same directory, so
+// WriteAtomic replaces path through a temporary file in the same directory, so
 // other processes never see a half-written file.
-func writeAtomic(path, text string) error {
+func WriteAtomic(path, text string) error {
 	tmp, err := os.CreateTemp(filepath.Dir(path), ".sync-*.tmp")
 	if err != nil {
 		return fmt.Errorf("write %s: %w", path, err)

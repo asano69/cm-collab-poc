@@ -1,4 +1,5 @@
-package filesync
+// Package metasync saves the line IDs of a document to a file.
+package metasync
 
 import (
 	"bytes"
@@ -11,8 +12,12 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/asano69/myapp/filesync"
 	"github.com/asano69/myapp/internal/lineid"
 )
+
+// saveInterval is how often changed line IDs are written to the file.
+const saveInterval = time.Second
 
 // MetaSource holds the line IDs of a document.
 type MetaSource interface {
@@ -20,11 +25,11 @@ type MetaSource interface {
 	RestoreMeta(lineid.Meta)
 }
 
-// StartMeta restores the line IDs from path, then saves them there every
+// Start restores the line IDs from path, then saves them there every
 // second when they changed. The file is read only once: the server is its only
-// writer. Call it after Start, so that the text is loaded when the IDs are
-// matched against it.
-func StartMeta(src MetaSource, path string) error {
+// writer. Call it after filesync.Start, so that the text is loaded when the IDs
+// are matched against it.
+func Start(src MetaSource, path string) error {
 	abs, err := filepath.Abs(path)
 	if err != nil {
 		return fmt.Errorf("resolve %q: %w", path, err)
@@ -81,7 +86,7 @@ func (m *metaSaver) save() error {
 	if bytes.Equal(data, m.saved) {
 		return nil
 	}
-	if err := writeAtomic(m.path, string(data)); err != nil {
+	if err := filesync.WriteAtomic(m.path, string(data)); err != nil {
 		return err
 	}
 	m.saved = data

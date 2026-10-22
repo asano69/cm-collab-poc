@@ -5,9 +5,10 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/asano69/myapp/filesync"
 	"github.com/asano69/myapp/internal/authority"
-	"github.com/asano69/myapp/internal/filesync"
 	"github.com/asano69/myapp/internal/linehub"
+	"github.com/asano69/myapp/internal/metasync"
 	"github.com/asano69/myapp/internal/relayauth"
 	"github.com/asano69/myapp/internal/static"
 )
@@ -45,8 +46,8 @@ func serve(args []string) error {
 	if err := filesync.Start(hub, dataPath); err != nil {
 		return err
 	}
-	// After Start: the saved line IDs are matched against the loaded text.
-	if err := filesync.StartMeta(hub, metaPath); err != nil {
+	// After filesync.Start: the saved line IDs are matched against the loaded text.
+	if err := metasync.Start(hub, metaPath); err != nil {
 		return err
 	}
 
