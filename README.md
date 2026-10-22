@@ -22,3 +22,5 @@ cp <メインのディレクトリ>/known_hosts .
 ./myapp relay --upstream ws://127.0.0.1:3002 --addr 127.0.0.1:3004
 ```
 
+
+    GOPROXY=direct go get github.com/asano69/cmgo@main

@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/asano69/myapp/collab"
+	"github.com/asano69/cmgo/collab"
 	"github.com/asano69/myapp/internal/lineid"
 	"github.com/asano69/myapp/internal/relayauth"
 )

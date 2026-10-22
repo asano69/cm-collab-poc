@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/asano69/myapp/filesync"
+	"github.com/asano69/cmgo/filesync"
 	"github.com/asano69/myapp/internal/authority"
 	"github.com/asano69/myapp/internal/linehub"
 	"github.com/asano69/myapp/internal/metasync"

@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/asano69/myapp/filesync"
+	"github.com/asano69/cmgo/filesync"
 	"github.com/asano69/myapp/internal/lineid"
 )
 
