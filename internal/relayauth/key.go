@@ -81,11 +81,15 @@ func LoadPrivateKey(path string) (ed25519.PrivateKey, error) {
 	return priv, nil
 }
 
-// AuthorizedKey returns the authorized_keys line for the public half of priv.
-func AuthorizedKey(priv ed25519.PrivateKey) string {
-	pub := priv.Public().(ed25519.PublicKey)
+// PublicKeyLine returns the authorized_keys line for pub.
+func PublicKeyLine(pub ed25519.PublicKey) string {
 	blob := append(bytes.Clone(sshPrefix), pub...)
 	return sshKeyType + " " + base64.StdEncoding.EncodeToString(blob)
+}
+
+// AuthorizedKey returns the authorized_keys line for the public half of priv.
+func AuthorizedKey(priv ed25519.PrivateKey) string {
+	return PublicKeyLine(priv.Public().(ed25519.PublicKey))
 }
 
 func parseAuthorizedKey(line string) (ed25519.PublicKey, error) {

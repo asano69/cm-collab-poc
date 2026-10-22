@@ -8,6 +8,8 @@ meta.json
 # Relay credentials.
 relay-private.pem
 authorized_keys
+Authority.pem
+known_hosts
 
 # Locally cloned reference implementations used by parser development.
 /sb-spec/

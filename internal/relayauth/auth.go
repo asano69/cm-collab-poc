@@ -2,6 +2,7 @@ package relayauth
 
 import (
 	"bytes"
+	"context"
 	"crypto/ed25519"
 	"encoding/base64"
 	"errors"
@@ -24,6 +25,15 @@ const (
 	// clock, which bounds how long a captured request could be replayed.
 	maxSkew = 30 * time.Second
 )
+
+type keyContext struct{}
+
+// KeyFrom returns the public key that a request passed by Require was signed
+// with. ok is false for requests that did not come through Require.
+func KeyFrom(ctx context.Context) (key ed25519.PublicKey, ok bool) {
+	key, ok = ctx.Value(keyContext{}).(ed25519.PublicKey)
+	return key, ok
+}
 
 // message is what gets signed. The prefix keeps the signature from being valid
 // for any other purpose.
@@ -90,6 +100,9 @@ func Require(keysPath string, next http.Handler) http.Handler {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
-		next.ServeHTTP(w, r)
+		// verify has checked the header, so it decodes.
+		pub, _ := base64.StdEncoding.DecodeString(r.Header.Get(headerKey))
+		ctx := context.WithValue(r.Context(), keyContext{}, ed25519.PublicKey(pub))
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

@@ -14,7 +14,12 @@ import (
 	"github.com/coder/websocket"
 
 	"github.com/asano69/myapp/internal/lineid"
+	"github.com/asano69/myapp/internal/relayauth"
 )
+
+// relayAdmin is the administrator of the relay server, a fixed name in this
+// proof of concept. The main server's is serverAuthor.
+const relayAdmin = "Bob"
 
 // Update is one client's change set. Changes is kept opaque: the server never
 // applies it, it only orders and relays it.
@@ -42,6 +47,7 @@ type client struct {
 	cancel context.CancelFunc
 	id     string // clientID from the latest cursor message
 	cursor []byte // latest cursor message, replayed to new clients
+	author lineid.Author // who is behind the connection, recorded in line signatures
 }
 
 // Hub holds the single shared document.
@@ -50,6 +56,7 @@ type Hub struct {
 	updates []Update
 	doc     []uint16    // the document after all updates, in UTF-16 code units
 	meta    lineid.Meta // the line IDs of doc, changed together with it
+	signer  Signer      // signs the changed lines of meta; nil means no signing
 	clients map[*client]struct{}
 }
 
@@ -125,11 +132,12 @@ func (h *Hub) push(c *client, msg pushMessage) error {
 	case msg.Version < len(h.updates):
 		deliver(c, encode(msg.Version, h.updates[msg.Version:]))
 	case len(msg.Updates) > 0:
-		doc, meta, err := applyUpdates(h.doc, h.meta, msg.Updates, time.Now().Unix())
+		now := time.Now().Unix()
+		doc, meta, err := applyUpdates(h.doc, h.meta, msg.Updates, now)
 		if err != nil {
 			return err
 		}
-		h.doc, h.meta = doc, meta
+		h.doc, h.meta = doc, h.sign(doc, meta, c.author, now)
 		h.accept(msg.Updates)
 	}
 	return nil
@@ -199,6 +207,15 @@ func (h *Hub) readLoop(ctx context.Context, conn *websocket.Conn, c *client) err
 	}
 }
 
+// authorOf names who is behind a connection: a relay that signed its request
+// with a key, or a browser that connected directly.
+func authorOf(r *http.Request) lineid.Author {
+	if key, ok := relayauth.KeyFrom(r.Context()); ok {
+		return lineid.Author{Admin: relayAdmin, Key: relayauth.PublicKeyLine(key)}
+	}
+	return serverAuthor
+}
+
 // ServeHTTP upgrades the request to a WebSocket and serves one client.
 func (h *Hub) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	conn, err := websocket.Accept(w, r, nil)
@@ -212,7 +229,7 @@ func (h *Hub) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
-	c := &client{send: make(chan []byte, 64), cancel: cancel}
+	c := &client{send: make(chan []byte, 64), cancel: cancel, author: authorOf(r)}
 	h.join(c)
 	defer h.leave(c)
 	go c.writeLoop(ctx, conn)

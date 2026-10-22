@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/asano69/myapp/internal/authority"
 	"github.com/asano69/myapp/internal/collab"
 	"github.com/asano69/myapp/internal/filesync"
 	"github.com/asano69/myapp/internal/relayauth"
@@ -24,9 +25,23 @@ func serve(args []string) error {
 	addr := fs.String("addr", "127.0.0.1:3002", "listen address")
 	keys := fs.String("authorized-keys", "authorized_keys",
 		"file listing the relay public keys that may connect")
+	authorityPath := fs.String("authority", "Authority.pem",
+		"private key that signs the lines (created if missing)")
+	knownHosts := fs.String("known-hosts", "known_hosts",
+		"file that the public key of this server is written to, for relays")
 	fs.Parse(args)
 
+	auth, err := authority.Load(*authorityPath)
+	if err != nil {
+		return err
+	}
+	if err := auth.WriteKnownHosts(*knownHosts, *addr); err != nil {
+		return err
+	}
+	log.Printf("authority public key: %s (saved to %s)", auth.PublicKey(), *knownHosts)
+
 	hub := collab.NewHub()
+	hub.SetSigner(auth)
 	if err := filesync.Start(hub, dataPath); err != nil {
 		return err
 	}

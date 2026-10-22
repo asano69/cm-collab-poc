@@ -27,10 +27,21 @@ const newline = '\n'
 // get predictable IDs.
 var newID = func() string { return uuid.Must(uuid.NewV7()).String() }
 
-// Line is the metadata of one line.
+// Line is the metadata of one line. Apply leaves the lines it produces
+// unsigned; the signer fills in everything but ID and Updated.
 type Line struct {
-	ID      string `json:"id"`      // UUID version 7
-	Updated int64  `json:"updated"` // Unix time of the last edit that touched the line
+	ID        string `json:"id"`        // UUID version 7
+	Hash      string `json:"hash"`      // SHA-256 of the line text, hex
+	Updated   int64  `json:"updated"`   // Unix time of the last edit that touched the line
+	Admin     string `json:"admin"`     // name of the administrator of the server the edit came through
+	Key       string `json:"key"`       // public key of the client that made the edit; empty without one
+	Signature string `json:"signature"` // of ID, Hash, Updated, Admin and Key, by the main server
+}
+
+// Author says who is behind an edit.
+type Author struct {
+	Admin string
+	Key   string
 }
 
 // Meta holds the metadata of every line, in document order.

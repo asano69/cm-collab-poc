@@ -11,6 +11,34 @@ import (
 // matches a real client, so every client treats them as remote updates.
 const serverID = "server"
 
+// serverAuthor is who edits made by the main server itself, and edits of
+// directly connected browsers, are attributed to. The administrator's name is
+// fixed in this proof of concept.
+var serverAuthor = lineid.Author{Admin: "Alice"}
+
+// Signer signs the lines of a document that were changed by author at time now.
+type Signer interface {
+	Sign(doc []uint16, meta lineid.Meta, author lineid.Author, now int64) lineid.Meta
+}
+
+// SetSigner makes the hub sign the line IDs from now on, and signs the lines
+// that exist already.
+func (h *Hub) SetSigner(s Signer) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	h.signer = s
+	h.meta = h.sign(h.doc, h.meta, serverAuthor, time.Now().Unix())
+}
+
+// sign signs the changed lines of meta, if the hub has a signer. h.mu must be
+// held.
+func (h *Hub) sign(doc []uint16, meta lineid.Meta, author lineid.Author, now int64) lineid.Meta {
+	if h.signer == nil {
+		return meta
+	}
+	return h.signer.Sign(doc, meta, author, now)
+}
+
 // Text returns the current document.
 func (h *Hub) Text() string {
 	h.mu.Lock()
@@ -29,13 +57,14 @@ func (h *Hub) Replace(text string) {
 		return
 	}
 	updates := []Update{{ClientID: serverID, Changes: changes}}
-	doc, meta, err := applyUpdates(h.doc, h.meta, updates, time.Now().Unix())
+	now := time.Now().Unix()
+	doc, meta, err := applyUpdates(h.doc, h.meta, updates, now)
 	if err != nil {
 		// Unreachable: replaceChanges only returns changes that fit h.doc.
 		log.Printf("collab: replace: %v", err)
 		return
 	}
-	h.doc, h.meta = doc, meta
+	h.doc, h.meta = doc, h.sign(doc, meta, serverAuthor, now)
 	h.accept(updates)
 }
 
@@ -64,4 +93,7 @@ func (h *Hub) RestoreMeta(saved lineid.Meta) {
 			len(saved.Lines), lineid.Count(h.doc))
 		h.meta = lineid.New(h.doc, time.Now().Unix())
 	}
+	// Lines that were edited while the server was down no longer match their
+	// hash, and get signed again.
+	h.meta = h.sign(h.doc, h.meta, serverAuthor, time.Now().Unix())
 }
