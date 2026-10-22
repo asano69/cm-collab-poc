@@ -47,12 +47,6 @@ dev-back: clean
 	bunx concurrently -n "frontend,backend" -c "blue,green" "cd frontend && bun watch" "air"
 
 
-# Regenerates the TypeScript API types from internal/api. Commit the result:
-# the Docker build has no Go toolchain in its frontend stage.
-.PHONY: generate
-generate:
-	go tool tygo generate
-
 .PHONY: test
 test: test-front test-back
 
@@ -68,7 +62,7 @@ lint: typecheck
 	cd frontend && bun run lint:css
 
 .PHONY: typecheck
-typecheck: generate
+typecheck: 
 	cd frontend && bun run typecheck
 
 
