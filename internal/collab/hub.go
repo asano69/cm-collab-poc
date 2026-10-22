@@ -45,11 +45,16 @@ type client struct {
 type Hub struct {
 	mu      sync.Mutex
 	updates []Update
+	doc     []uint16 // the document after all updates, in UTF-16 code units
 	clients map[*client]struct{}
 }
 
 func NewHub() *Hub {
-	return &Hub{updates: []Update{}, clients: map[*client]struct{}{}}
+	return &Hub{
+		updates: []Update{},
+		doc:     []uint16{},
+		clients: map[*client]struct{}{},
+	}
 }
 
 func encode(from int, updates []Update) []byte {
@@ -98,8 +103,9 @@ func validate(updates []Update) error {
 	return nil
 }
 
-// push accepts the updates if the client is up to date, otherwise it sends the
-// client what it is missing so that it can rebase and retry.
+// push accepts the updates if the client is up to date and they apply to the
+// document, otherwise it sends the client what it is missing so that it can
+// rebase and retry.
 func (h *Hub) push(c *client, msg pushMessage) error {
 	if err := validate(msg.Updates); err != nil {
 		return err
@@ -113,13 +119,25 @@ func (h *Hub) push(c *client, msg pushMessage) error {
 	case msg.Version < len(h.updates):
 		deliver(c, encode(msg.Version, h.updates[msg.Version:]))
 	case len(msg.Updates) > 0:
-		h.updates = append(h.updates, msg.Updates...)
-		data := encode(msg.Version, msg.Updates)
-		for cl := range h.clients {
-			deliver(cl, data)
+		doc, err := applyUpdates(h.doc, msg.Updates)
+		if err != nil {
+			return err
 		}
+		h.doc = doc
+		h.accept(msg.Updates)
 	}
 	return nil
+}
+
+// accept appends already applied updates to the history and relays them to
+// every client. h.mu must be held.
+func (h *Hub) accept(updates []Update) {
+	from := len(h.updates)
+	h.updates = append(h.updates, updates...)
+	data := encode(from, updates)
+	for cl := range h.clients {
+		deliver(cl, data)
+	}
 }
 
 func (c *client) writeLoop(ctx context.Context, conn *websocket.Conn) {

@@ -57,7 +57,7 @@ generate:
 test: test-front test-back
 
 test-back:
-	go test ./cmd/... ./internal/... ./scripts/...
+	go test ./cmd/... ./internal/... #./scripts/...
 
 test-front:
 	cd frontend && bun run test

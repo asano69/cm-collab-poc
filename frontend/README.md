@@ -3,6 +3,8 @@
 ```sh
 bun create vite my-app --template solid-ts
 pnpm install # or pnpm install or yarn install
+
+bun add -d vitest jsdom
 ```
 
 ### Learn more on the [Solid Website](https://solidjs.com) and come chat with us on our [Discord](https://discord.com/invite/solidjs)

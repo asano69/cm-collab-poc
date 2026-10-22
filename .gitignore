@@ -2,6 +2,7 @@
 /cardpod
 
 /data/
+data.txt
 
 # Locally cloned reference implementations used by parser development.
 /sb-spec/
