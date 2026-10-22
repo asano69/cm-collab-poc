@@ -6,7 +6,7 @@ export
 BINARY := myapp
 
 # Ports used by the dev servers (frontend, backend, and PocketBase-style API)
-PORTS := 3000 3001
+PORTS := 3002 3003
 
 all: # (*) Build frontend assets and start the server
 	go run ./cmd/$(BINARY) superuser upsert admin@mail.internal password --dir=pb_data
@@ -36,12 +36,12 @@ server:
 	rm -fr ./tmp/ # air
 	rm -fr frontend/node_modules/.vite
 
-# port: 3001
+# port: 3003
 .PHONY: dev-front
 dev-front: clean
 	bunx concurrently -n "frontend,backend" -c "blue,green" "cd frontend && bun dev" "go run ./cmd/$(BINARY) serve --dev"
 
-# port: 3000
+# port: 3002
 .PHONY: dev-back
 dev-back: clean
 	bunx concurrently -n "frontend,backend" -c "blue,green" "cd frontend && bun watch" "air"
