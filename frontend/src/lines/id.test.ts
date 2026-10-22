@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { shortID } from "./id";
 
-test("shortID takes the first random digits and skips version and variant", () => {
-  expect(shortID("0192f3a4-b5c6-7abc-8def-0123456789ab")).toBe("abcdef0");
+test("shortID takes the first 7 digits of the last block", () => {
+  expect(shortID("01a162fa-894e-7053-93ca-ee106b9da0ed")).toBe("ee106b9");
 });

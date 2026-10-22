@@ -20,9 +20,6 @@ class LineIDMarker extends GutterMarker {
 }
 
 const theme = EditorView.baseTheme({
-  ".cm-line-id-gutter": {
-    minWidth: "7ch",
-  },
   ".cm-line-id-gutter .cm-gutterElement": {
     padding: "0 8px",
     textAlign: "right",

@@ -15,9 +15,17 @@
 // Undo and moving text are ordinary edits, so they produce fresh IDs.
 package lineid
 
-import "slices"
+import (
+	"slices"
+
+	"github.com/google/uuid"
+)
 
 const newline = '\n'
+
+// newID returns the ID for a new line, a UUID version 7. Tests replace it to
+// get predictable IDs.
+var newID = func() string { return uuid.Must(uuid.NewV7()).String() }
 
 // Line is the metadata of one line.
 type Line struct {

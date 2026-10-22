@@ -1,7 +1,5 @@
-// Shortens a UUIDv7 for display to 7 digits of its random part. The 32 hex
-// digits are 12 of time, the version, 3 random, the variant, and 15 random;
-// the version and the variant carry (almost) no randomness and are skipped.
+// Shortens a UUID for display to the first 7 hex digits of its last block,
+// e.g. "01a162fa-894e-7053-93ca-ee106b9da0ed" becomes "ee106b9".
 export function shortID(id: string): string {
-  const hex = id.replaceAll("-", "");
-  return hex.slice(13, 16) + hex.slice(17, 21);
+  return id.split("-")[4].slice(0, 7);
 }
