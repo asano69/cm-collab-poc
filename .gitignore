@@ -4,6 +4,10 @@
 /data/
 data.txt
 
+# Relay credentials.
+relay-private.pem
+authorized_keys
+
 # Locally cloned reference implementations used by parser development.
 /sb-spec/
 

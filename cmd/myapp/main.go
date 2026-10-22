@@ -1,28 +1,31 @@
 package main
 
 import (
+	"fmt"
 	"log"
-	"net/http"
-
-	"github.com/asano69/myapp/internal/collab"
-	"github.com/asano69/myapp/internal/filesync"
-	"github.com/asano69/myapp/internal/static"
+	"os"
+	"strings"
 )
 
-// dataPath is the file that persists the shared document.
-const dataPath = "data.txt"
-
 func main() {
-	hub := collab.NewHub()
-	if err := filesync.Start(hub, dataPath); err != nil {
-		log.Fatal(err)
+	// Without a subcommand the server starts, as it did before.
+	cmd, args := "serve", os.Args[1:]
+	if len(args) > 0 && !strings.HasPrefix(args[0], "-") {
+		cmd, args = args[0], args[1:]
 	}
 
-	mux := http.NewServeMux()
-	mux.Handle("/connection/collab", hub)
-	mux.Handle("/", http.FileServerFS(static.FS))
-
-	addr := "127.0.0.1:3002"
-	log.Printf("listening on http://%s", addr)
-	log.Fatal(http.ListenAndServe(addr, mux))
+	var err error
+	switch cmd {
+	case "serve":
+		err = serve(args)
+	case "relay":
+		err = relayCmd(args)
+	case "keygen":
+		err = keygen(args)
+	default:
+		err = fmt.Errorf("unknown command %q (want serve, relay or keygen)", cmd)
+	}
+	if err != nil {
+		log.Fatal(err)
+	}
 }

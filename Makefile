@@ -29,7 +29,7 @@ build: build-front
 server: 
 	#./myapp migrate up --dir=pb_data
 	./$(BINARY) superuser upsert admin@mail.internal password --dir=pb_data
-	./$(BINARY) serve --dev
+	./$(BINARY) serve
 
 # --------------
 .PHONY: clean
@@ -39,7 +39,7 @@ server:
 # port: 3003
 .PHONY: dev-front
 dev-front: clean
-	bunx concurrently -n "frontend,backend" -c "blue,green" "cd frontend && bun dev" "go run ./cmd/$(BINARY) serve --dev"
+	bunx concurrently -n "frontend,backend" -c "blue,green" "cd frontend && bun dev" "go run ./cmd/$(BINARY) serve"
 
 # port: 3002
 .PHONY: dev-back
