@@ -9,7 +9,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/asano69/cmgo/authority"
 	"github.com/asano69/cmgo/collab"
+	"github.com/asano69/cmgo/ot"
 	"github.com/asano69/myapp/internal/lineid"
 	"github.com/asano69/myapp/internal/relayauth"
 )
@@ -55,7 +57,7 @@ func authorOf(r *http.Request) any {
 
 // Track implements collab.Tracker. A nil author (an edit made by the server
 // itself) is attributed to serverAuthor.
-func (h *Hub) Track(changes []collab.Change, doc []uint16, author any, now int64) {
+func (h *Hub) Track(changes []authority.Change, doc []uint16, author any, now int64) {
 	a, ok := author.(lineid.Author)
 	if !ok {
 		a = serverAuthor
@@ -63,7 +65,7 @@ func (h *Hub) Track(changes []collab.Change, doc []uint16, author any, now int64
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	for _, c := range changes {
-		h.meta = h.meta.Apply(c.Before, toEdits(c.Edits), now)
+		h.meta = h.meta.Apply(c.Before, toEdits(c.Changes.Edits()), now)
 	}
 	h.meta = h.sign(doc, h.meta, a, now)
 }
@@ -76,7 +78,7 @@ func (h *Hub) Message() []byte {
 	return encodeLines(h.meta)
 }
 
-func toEdits(edits []collab.Edit) []lineid.Edit {
+func toEdits(edits []ot.Edit) []lineid.Edit {
 	out := make([]lineid.Edit, len(edits))
 	for i, e := range edits {
 		out[i] = lineid.Edit{From: e.From, To: e.To, Text: e.Text}

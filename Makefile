@@ -12,6 +12,8 @@ all: # (*) Build frontend assets and start the server
 	go run ./cmd/$(BINARY) superuser upsert admin@mail.internal password --dir=pb_data
 	go run ./cmd/$(BINARY) serve
 
+deps-update:
+	GOPROXY=direct go get github.com/asano69/cmgo@main
 
 .PHONY: deps-front
 deps-front:
@@ -36,12 +38,12 @@ relay:
 
 # port: 3003
 .PHONY: dev-front
-dev-front: clean
+dev-front: clean deps-update
 	bunx concurrently -n "frontend,backend" -c "blue,green" "cd frontend && bun dev" "go run ./cmd/$(BINARY) serve"
 
 # port: 3002
 .PHONY: dev-back
-dev-back: clean
+dev-back: clean deps-update
 	bunx concurrently -n "frontend,backend" -c "blue,green" "cd frontend && bun watch" "air"
 
 
