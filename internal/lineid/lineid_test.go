@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"testing"
 	"unicode/utf16"
+
+	"github.com/asano69/cmgo/ot"
 )
 
 func units(s string) []uint16 { return utf16.Encode([]rune(s)) }
@@ -31,9 +33,9 @@ func useCounterIDs(t *testing.T) {
 func apply(t *testing.T, doc string, now int64, edits ...edit) Meta {
 	t.Helper()
 	useCounterIDs(t)
-	var es []Edit
+	var es []ot.Edit
 	for _, e := range edits {
-		es = append(es, Edit{From: e.from, To: e.to, Text: units(e.text)})
+		es = append(es, ot.Edit{From: e.from, To: e.to, Text: units(e.text)})
 	}
 	return New(units(doc), 0).Apply(units(doc), es, now)
 }
@@ -92,7 +94,7 @@ func TestApplyMarksTouchedLinesOnly(t *testing.T) {
 
 func TestApplyKeepsTheOldMeta(t *testing.T) {
 	old := New(units("ab"), 0)
-	old.Apply(units("ab"), []Edit{{From: 2, To: 2, Text: units("\n")}}, 1)
+	old.Apply(units("ab"), []ot.Edit{{From: 2, To: 2, Text: units("\n")}}, 1)
 	if len(old.Lines) != 1 {
 		t.Errorf("the old meta was modified: %v", old.Lines)
 	}

@@ -11,7 +11,6 @@ import (
 
 	"github.com/asano69/cmgo/authority"
 	"github.com/asano69/cmgo/collab"
-	"github.com/asano69/cmgo/ot"
 	"github.com/asano69/myapp/internal/lineid"
 	"github.com/asano69/myapp/internal/relayauth"
 )
@@ -65,7 +64,7 @@ func (h *Hub) Track(changes []authority.Change, doc []uint16, author any, now in
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	for _, c := range changes {
-		h.meta = h.meta.Apply(c.Before, toEdits(c.Changes.Edits()), now)
+		h.meta = h.meta.Apply(c.Before, c.Changes.Edits(), now)
 	}
 	h.meta = h.sign(doc, h.meta, a, now)
 }
@@ -78,13 +77,6 @@ func (h *Hub) Message() []byte {
 	return encodeLines(h.meta)
 }
 
-func toEdits(edits []ot.Edit) []lineid.Edit {
-	out := make([]lineid.Edit, len(edits))
-	for i, e := range edits {
-		out[i] = lineid.Edit{From: e.From, To: e.To, Text: e.Text}
-	}
-	return out
-}
 
 // sign signs the changed lines of meta, if the hub has a signer. h.mu must be
 // held.

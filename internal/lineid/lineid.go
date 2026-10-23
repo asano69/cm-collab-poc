@@ -18,6 +18,7 @@ package lineid
 import (
 	"slices"
 
+	"github.com/asano69/cmgo/ot"
 	"github.com/google/uuid"
 )
 
@@ -49,11 +50,6 @@ type Meta struct {
 	Lines []Line `json:"lines"`
 }
 
-// Edit replaces doc[From:To] with Text. Positions are UTF-16 code units.
-type Edit struct {
-	From, To int
-	Text     []uint16
-}
 
 // Count returns the number of lines of doc.
 func Count(doc []uint16) int { return newlines(doc) + 1 }
@@ -79,7 +75,7 @@ func New(doc []uint16, now int64) Meta {
 
 // Apply returns the metadata after edits were applied to doc. The edits must
 // be sorted and must not overlap, with positions in doc. m is not modified.
-func (m Meta) Apply(doc []uint16, edits []Edit, now int64) Meta {
+func (m Meta) Apply(doc []uint16, edits []ot.Edit, now int64) Meta {
 	m.Lines = slices.Clone(m.Lines)
 	// Last edit first, so that the line indexes of the earlier ones stay valid.
 	for n := len(edits) - 1; n >= 0; n-- {
@@ -88,7 +84,7 @@ func (m Meta) Apply(doc []uint16, edits []Edit, now int64) Meta {
 	return m
 }
 
-func (m *Meta) applyEdit(doc []uint16, e Edit, now int64) {
+func (m *Meta) applyEdit(doc []uint16, e ot.Edit, now int64) {
 	first := newlines(doc[:e.From])
 	last := first + newlines(doc[e.From:e.To])
 	atLineStart := e.From == 0 || doc[e.From-1] == newline
