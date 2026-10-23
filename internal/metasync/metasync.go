@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/asano69/cmgo/filesync"
+	"github.com/asano69/cmgo/persistence"
 	"github.com/asano69/myapp/internal/lineid"
 )
 
@@ -86,7 +86,7 @@ func (m *metaSaver) save() error {
 	if bytes.Equal(data, m.saved) {
 		return nil
 	}
-	if err := filesync.WriteAtomic(m.path, string(data)); err != nil {
+	if err := persistence.WriteAtomic(m.path, data); err != nil {
 		return err
 	}
 	m.saved = data

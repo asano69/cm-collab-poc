@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
 	"net/http"
 
 	"github.com/asano69/cmgo/filesync"
+	"github.com/asano69/cmgo/persistence"
 	"github.com/asano69/myapp/internal/authority"
 	"github.com/asano69/myapp/internal/linehub"
 	"github.com/asano69/myapp/internal/metasync"
@@ -43,7 +45,9 @@ func serve(args []string) error {
 
 	hub := linehub.New()
 	hub.SetSigner(auth)
-	if err := filesync.Start(hub, dataPath); err != nil {
+	// The document is stored as the file dataPath in the working directory.
+	store := persistence.NewFileStore(".")
+	if err := filesync.Start(context.Background(), hub, store, dataPath); err != nil {
 		return err
 	}
 	// After filesync.Start: the saved line IDs are matched against the loaded text.
