@@ -17,6 +17,7 @@
     "@codemirror/commands": "^6.11.1",
     "@codemirror/state": "^6.7.6",
     "@codemirror/view": "^6.43.15",
+    "cm-websocket": "github:asano69/cm-websocket",
     "solid-js": "^1.9.17"
   },
   "devDependencies": {

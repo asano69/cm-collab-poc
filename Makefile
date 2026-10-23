@@ -13,6 +13,7 @@ all: # (*) Build frontend assets and start the server
 	go run ./cmd/$(BINARY) serve
 
 deps-update:
+	cd frontend && bun add github:asano69/cm-websocket
 	GOPROXY=direct go get github.com/asano69/cmgo@main
 
 .PHONY: deps-front

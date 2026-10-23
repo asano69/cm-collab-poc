@@ -6,6 +6,8 @@ github.com/asano69/cmgo v0.0.0-20261023014641-7848073b524d h1:O306BlFhovoggmy+Nv
 github.com/asano69/cmgo v0.0.0-20261023014641-7848073b524d/go.mod h1:O5v3UCVZlvmSuSnxPJawG5JlIxBRuBNSy3/m8FJbxNw=
 github.com/asano69/cmgo v0.0.0-20261023021008-de49de6b688a h1:u3c4Dohzgmx0DhyhDyDFs7S/g2gbW1pYw1hhICDio70=
 github.com/asano69/cmgo v0.0.0-20261023021008-de49de6b688a/go.mod h1:O5v3UCVZlvmSuSnxPJawG5JlIxBRuBNSy3/m8FJbxNw=
+github.com/asano69/cmgo v0.0.0-20261023024522-c785a0045396 h1:zzxLm+CuDnuX9+J82AQtkvMiKeFeBd8RKNglD22mqBk=
+github.com/asano69/cmgo v0.0.0-20261023024522-c785a0045396/go.mod h1:O5v3UCVZlvmSuSnxPJawG5JlIxBRuBNSy3/m8FJbxNw=
 github.com/coder/websocket v1.8.15 h1:6B2JPeOGlpff2Uz6vOEH1Vzpi0iUz20A+lPVhPHtNUA=
 github.com/coder/websocket v1.8.15/go.mod h1:NX3SzP+inril6yawo5CQXx8+fk145lPDC6pumgx0mVg=
 github.com/fsnotify/fsnotify v1.10.1 h1:b0/UzAf9yR5rhf3RPm9gf3ehBPpf0oZKIjtpKrx59Ho=

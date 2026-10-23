@@ -2,8 +2,7 @@ import { Show, createSignal, onCleanup, onMount } from "solid-js";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { EditorState } from "@codemirror/state";
 import { EditorView, keymap } from "@codemirror/view";
-import { collabExtension } from "@/collab";
-import { cursorsExtension } from "@/cursors";
+import { collabExtension, connect, cursorsExtension } from "cm-websocket";
 import { linesExtension } from "@/lines";
 
 // A throwaway display name; there is no login in this proof of concept.
@@ -19,8 +18,8 @@ function App() {
   let parent!: HTMLDivElement;
 
   onMount(() => {
-    const socket = new WebSocket(collabURL());
-    socket.addEventListener("close", (event) => {
+    const channel = connect(collabURL());
+    channel.socket.addEventListener("close", (event) => {
       const reason = event.reason ? `: ${event.reason}` : "";
       setError(`Connection lost${reason}. Reload the page to reconnect.`);
     });
@@ -31,15 +30,15 @@ function App() {
         extensions: [
           history(),
           keymap.of([...defaultKeymap, ...historyKeymap]),
-          collabExtension(socket),
-          cursorsExtension(socket, { name: userName }),
-          linesExtension(socket),
+          collabExtension(channel),
+          cursorsExtension(channel, { name: userName }),
+          linesExtension(channel),
         ],
       }),
     });
 
     onCleanup(() => {
-      socket.close();
+      channel.socket.close();
       view.destroy();
     });
   });

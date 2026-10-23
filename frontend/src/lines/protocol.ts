@@ -1,3 +1,5 @@
+import type { Message } from "cm-websocket";
+
 // What the server tells about one line.
 export interface LineInfo {
   id: string; // a UUID
@@ -8,7 +10,7 @@ export interface LineInfo {
 }
 
 // Server -> client: the info of every line, in line order.
-export interface LinesMessage {
+export interface LinesMessage extends Message {
   type: "lines";
   lines: LineInfo[];
 }

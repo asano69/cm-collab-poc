@@ -1,27 +1,25 @@
 import { ViewPlugin, type EditorView } from "@codemirror/view";
+import type { Channel } from "cm-websocket";
 import type { LinesMessage } from "./protocol";
 import { setLines } from "./state";
 
-// Stores the line info that the server sends over `socket`.
-export function lineSync(socket: WebSocket) {
+// Stores the line info that the server sends over `channel`.
+export function lineSync(channel: Channel) {
   return ViewPlugin.fromClass(
     class {
       private readonly view: EditorView;
+      private readonly unsubscribe: () => void;
 
       constructor(view: EditorView) {
         this.view = view;
-        socket.addEventListener("message", this.onMessage);
+        this.unsubscribe = channel.on<LinesMessage>("lines", this.onLines);
       }
 
       destroy() {
-        socket.removeEventListener("message", this.onMessage);
+        this.unsubscribe();
       }
 
-      private onMessage = (event: MessageEvent<string>) => {
-        const data = JSON.parse(event.data);
-        // Other plugins share this socket.
-        if (data.type !== "lines") return;
-        const msg: LinesMessage = data;
+      private onLines = (msg: LinesMessage) => {
         this.view.dispatch({ effects: setLines.of(msg.lines) });
       };
     },

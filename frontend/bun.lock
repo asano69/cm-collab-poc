@@ -9,6 +9,7 @@
         "@codemirror/commands": "^6.11.1",
         "@codemirror/state": "^6.7.6",
         "@codemirror/view": "^6.43.15",
+        "cm-websocket": "github:asano69/cm-websocket",
         "solid-js": "^1.9.17",
       },
       "devDependencies": {
@@ -177,6 +178,8 @@
     "caniuse-lite": ["caniuse-lite@1.0.30001817", "", {}, "sha512-uZ1JG80BwhtMalIAGPxPfmNhHyd/B/nTdr3hITWlRamSyAdUStP1Gop01e7SD5q6J90ixJvWDbvmiFVfDgn4bw=="],
 
     "chai": ["chai@6.3.0", "", {}, "sha512-XWAtwJ6OHO+tj0EKCs0Y2UamnyOxseZWltU4x2U2wh8g4AigdjwvtUjvLP2tqkA/avxHEtzxNaqGq/YGNwckKg=="],
+
+    "cm-websocket": ["cm-websocket@github:asano69/cm-websocket#5467e88", { "peerDependencies": { "@codemirror/collab": "^6.1.1", "@codemirror/state": "^6.7.6", "@codemirror/view": "^6.43.15" } }, "asano69-cm-websocket-5467e88", "sha512-JvfaV3FZx446TFI+m3zaA3RFJUUFk/NDQuQ+rHse5ooMxv+QKEkXWeV3nF1nzCNUsCZlpu/RLrdKBnt7D/fHlQ=="],
 
     "convert-source-map": ["convert-source-map@2.0.0", "", {}, "sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg=="],
 
