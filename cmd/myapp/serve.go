@@ -46,7 +46,10 @@ func serve(args []string) error {
 	hub := linehub.New()
 	hub.SetSigner(auth)
 	// The document is stored as the file dataPath in the working directory.
-	store := persistence.NewFileStore(".")
+	store, err := persistence.NewFilePersistence(".")
+	if err != nil {
+		return err
+	}
 	if err := filesync.Start(context.Background(), hub, store, dataPath); err != nil {
 		return err
 	}
